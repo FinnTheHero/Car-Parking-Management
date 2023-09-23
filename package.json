@@ -15,6 +15,8 @@
     "typescript": "^5.2.2"
   },
   "devDependencies": {
-    "@types/morgan": "^1.9.5"
+    "@types/morgan": "^1.9.5",
+    "morgan": "^1.10.0",
+    "nodemon": "^3.0.1"
   }
 }
