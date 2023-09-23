@@ -20,6 +20,10 @@ nodemon run
 
 3. Compile and listen for changes on TypeScript file:
 
+```bash
+npm run-script run
+```
+
 The server will be running on `localhost:3000`.
 
 ---
