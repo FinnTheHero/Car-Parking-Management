@@ -3,28 +3,94 @@ import morgan from 'morgan';
 import bodyParser from 'body-parser';
 
 // User and Admin models
-// import { User, Admin } from './models';
+import { User } from './models/user.model';
+import { Cars } from './models/car.model';
+
 
 const app = express();
-app.use(morgan('dev'));
+app.use(morgan('dev')); 
 app.use(bodyParser.json());
 
 // User registration, authorization, password recovery
-app.post('/register', (req, res) => {
+app.post('/register', async (req, res) => {
     // Implement registration logic here
+    const { First_name, Last_name, Email, Password, IsAdmin } = req.body;
+    try {
+        const [ user, created ] = await User.findOrCreate({
+            where: {
+                email: `${Email}`
+            },
+            defaults: {
+                first_name: `${First_name}`,
+                last_name: `${Last_name}`,
+                email: `${Email}`,
+                password: `${Password}`,
+                isAdmin: `${IsAdmin}`
+            }
+        });
+
+        if (created) {
+            res.status(200).send(`User ${Email} created successfully!`);
+        } else {
+            res.send("User with this email exists! Try logging in!");
+        }
+
+    } catch (err) {
+        console.error(err);
+        res.status(401).send("Internal Server Error!");
+    }
 });
 
-app.post('/login', (req, res) => {
-	res.send("Login");
+app.post('/login', async (req, res) => {
+    // Implement login logic here
+    const { Email, Password } = req.body;
+    try{
+        const user = await User.findOne({ where: { email: `${Email}`, password: `${Password}`}});
+        if (!user) {
+            res.status(401).send("Credentials are wrong !");
+        } else {
+            res.status(200).send(`Logged in as ${user.first_name} successfully !`);
+        }
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Internal Server Error!");
+    }
+    
 });
 
-app.post('/recover-password', (req, res) => {
+app.post('/recover-password', async (req, res) => {
     // Implement password recovery logic here
+    const { Email } = req.body;
+    try {
+        const user = await User.findOne({ where: { email: `${Email}` }});
+        if (!user) {
+            res.status(401).send("User Doesnt Exist!");
+        } else {
+            res.send(`password: ${user.password}`);
+        }
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Internal Server Error!");
+    }
 });
 
 // User vehicle management
-app.post('/vehicle', (req, res) => {
+app.post('/vehicle', async (req, res) => {
     // Implement vehicle addition logic here
+    const { User_id, Name, State_number, Type } = req.body;
+    try {
+        const car = await Cars.create({
+            user_id: User_id,
+            name: Name,
+            state_number: State_number,
+            type: Type
+        });
+
+        res.status(200).send(`Car added to user with id: ${User_id}`);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Internal Server Error!");
+    }
 });
 
 app.put('/vehicle/:id', (req, res) => {
