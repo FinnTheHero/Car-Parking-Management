@@ -12,17 +12,18 @@ To run the project, follow these steps:
 npm i
 ```
 
-2. Start the server using nodemon:
+2. Compile and listen for changes on TypeScript file:
+
+```bash
+npm run-script run
+```
+
+3. Start the server using nodemon:
 
 ```bash
 nodemon run
 ```
 
-3. Compile and listen for changes on TypeScript file:
-
-```bash
-npm run-script run
-```
 
 The server will be running on `localhost:3000`.
 
