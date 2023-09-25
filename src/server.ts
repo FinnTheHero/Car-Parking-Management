@@ -121,9 +121,9 @@ app.put('/vehicle/:id', async (req, res) => {
 
         // If the user is admin modify car without further checking for permission
         if (user.isAdmin) {
-			if (Updated_name)   car.name = Updated_name;
-			if (Updated_name)   car.state_number = Updated_state_number;
-			if (Updated_name)   car.type = Updated_type;
+			if (typeof Updated_name !== 'undefined')   car.name = Updated_name;
+			if (typeof Updated_state_number !== 'undefined')   car.state_number = Updated_state_number;
+			if (typeof Updated_type !== 'undefined')   car.type = Updated_type;
 
 			await car.save();
 
@@ -134,8 +134,8 @@ app.put('/vehicle/:id', async (req, res) => {
 		if (car.user_id === user.id) {
 			// User owns car modification is allowed
 			if (Updated_name)   car.name = Updated_name;
-			if (Updated_name)   car.state_number = Updated_state_number;
-			if (Updated_name)   car.type = Updated_type;
+			if (Updated_state_number)   car.state_number = Updated_state_number;
+			if (Updated_type)   car.type = Updated_type;
 
 			await car.save();
 
@@ -238,8 +238,51 @@ app.post('/parking-zone', async (req, res) => {
 	}
 });
 
-app.put('/parking-zone/:id', (req, res) => {
+app.put('/parking-zone/:id', async (req, res) => {
     // Implement parking zone update logic here
+	const { Email, Password, Updated_name, Updated_address, Updated_price } = req.body;
+	try {
+		// Find the user by email and password
+		const user = await User.findOne({ where: { email: `${Email}`, password: `${hash(Password)}` } });
+		if(!user) {
+			// User doesn't exist
+			return res.status(404).send(`User with mail ${Email} not found!`);
+		}
+		
+		// Check if the user is admin
+		if (!user.isAdmin) {
+			// User is not allowed
+			return res.status(404).send(`You dont have acccess to create parking-zones!`);
+		}
+
+		// Find parking zone by id
+		const parkingZone = await ParkingZone.findOne({ where: { id: req.params.id } });
+		if (!parkingZone) {
+			// Parking zone doesn't exist
+			return res.status(404).send(`Parking zone with ID ${req.params.id} not found!`);
+		}
+
+		// Check if user wants to set name and address same as other parking zone(not allowed)
+		const updatedParkingZone = await ParkingZone.findOne({ where: { name: `${Updated_name}`, address: `${parkingZone.address}` } });
+		if (!updatedParkingZone) {
+			// Modify parking zone
+			if (typeof Updated_name !== 'undefined') parkingZone.name = Updated_name;
+			if (typeof Updated_address !== 'undefined') parkingZone.address = Updated_address;
+			if (typeof Updated_price !== 'undefined') parkingZone.price = Updated_price;
+
+		
+			// Save changes
+			await parkingZone.save();
+			
+			return res.status(200).send("Parking zone updated successfully!");
+		} else {
+			return res.send(`Parking zone '${Updated_name}' on address '${parkingZone.address}' already exists!`);
+		}
+
+	} catch (err) {
+		console.error(err);
+		res.status(500).send("Internal Server Error!");
+	}
 });
 
 app.delete('/parking-zone/:id', (req, res) => {
