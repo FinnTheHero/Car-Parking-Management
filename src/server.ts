@@ -323,7 +323,8 @@ app.delete('/parking-zone/:id', async (req, res) => {
 		await parkingZone.destroy();
 		return res.status(200).send("Parking zone deleted successfully!");
 	} catch (err) {
-
+		console.error(err);
+		res.status(500).send("Internal Server Error!");
 	}
 });
 
