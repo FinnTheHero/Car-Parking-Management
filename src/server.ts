@@ -6,6 +6,8 @@ import bodyParser from 'body-parser';
 import { User } from './models/user.model';
 import { Car } from './models/car.model';
 
+// Import Hash function
+import { hash } from './hash';
 
 const app = express();
 app.use(morgan('dev')); 
@@ -24,7 +26,7 @@ app.post('/register', async (req, res) => {
                 first_name: `${First_name}`,
                 last_name: `${Last_name}`,
                 email: `${Email}`,
-                password: `${Password}`,
+                password: `${hash(Password)}`,
                 isAdmin: `${IsAdmin}`
             }
         });
@@ -45,7 +47,7 @@ app.post('/login', async (req, res) => {
     // Implement login logic here
     const { Email, Password } = req.body;
     try{
-        const user = await User.findOne({ where: { email: `${Email}`, password: `${Password}`}});
+        const user = await User.findOne({ where: { email: `${Email}`, password: `${hash(Password)}`}});
         if (!user) {
             res.status(401).send("Credentials are wrong !");
         } else {
@@ -98,12 +100,62 @@ app.post('/vehicle', async (req, res) => {
     }
 });
 
-app.put('/vehicle/:id', (req, res) => {
+app.put('/vehicle/:id', async (req, res) => {
     // Implement vehicle update logic here
+    const { Email, Password, Updated_name, Updated_state_number, Updated_type } = req.body;
+    try {
+        const user = await User.findOne({ where: { email: `${Email}`, password: `${hash(Password)}`}});
+        if (user) {
+            const car = await Car.findOne({ where: { id: req.params.id }});
+            if(car) {
+                if(car.user_id === user.id || user.isAdmin === true) {
+                    if (Updated_name)   car.name = Updated_name;
+                    if (Updated_name)   car.state_number = Updated_state_number;
+                    if (Updated_name)   car.type = Updated_type;
+    
+                    await car.save();
+    
+                    res.status(200).send("Vehicle updated successfully");
+                } else {
+                    res.status(404).send(`You dont have acccess to vehicle with ID ${req.params.id}!`);  
+                }
+            } else {
+                res.status(404).send(`Vehicle with ID ${req.params.id} not found!`);
+            }
+            
+        } else {
+            res.status(404).send(`User with mail ${Email} not found!`);
+        }
+    } catch(err) {
+        console.error(err);
+        res.status(500).send("Internal Server Error!");
+    }
 });
 
-app.delete('/vehicle/:id', (req, res) => {
+app.delete('/vehicle/:id', async (req, res) => {
     // Implement vehicle deletion logic here
+    const { Email, Password } = req.body;
+    try {
+        const user = await User.findOne({ where: { email: `${Email}`, password: `${hash(Password)}`}});
+        if (user) {
+            const car = await Car.findOne({ where: { id: req.params.id } });
+            if (car) {
+                if(car.user_id === user.id || user.isAdmin === true) {
+                    car.destroy();
+                    res.status(200).send("Vehicle deleted successfully!");
+                } else {
+                    res.status(404).send(`You dont have acccess to vehicle with ID ${req.params.id}!`);  
+                }
+            } else {
+                res.status(404).send(`Vehicle with ID ${req.params.id} not found!`);
+            }
+        } else {
+            res.status(404).send(`User with mail ${Email} not found!`);
+        }
+    } catch(err) {
+        console.error(err);
+        res.status(500).send("Internal Server Error!");
+    }
 });
 
 // Admin parking zone management
