@@ -4,7 +4,7 @@ import bodyParser from 'body-parser';
 
 // User and Admin models
 import { User } from './models/user.model';
-import { Cars } from './models/car.model';
+import { Car } from './models/car.model';
 
 
 const app = express();
@@ -30,7 +30,7 @@ app.post('/register', async (req, res) => {
         });
 
         if (created) {
-            res.status(200).send(`User ${Email} created successfully!`);
+            res.status(200).send(`User ${First_name} created successfully!`);
         } else {
             res.send("User with this email exists! Try logging in!");
         }
@@ -79,14 +79,19 @@ app.post('/vehicle', async (req, res) => {
     // Implement vehicle addition logic here
     const { User_id, Name, State_number, Type } = req.body;
     try {
-        const car = await Cars.create({
-            user_id: User_id,
-            name: Name,
-            state_number: State_number,
-            type: Type
-        });
-
-        res.status(200).send(`Car added to user with id: ${User_id}`);
+        const user = await User.findOne({ where: { id: User_id } });
+        if (user) {
+            const car = await Car.create({
+                user_id: User_id,
+                name: Name,
+                state_number: State_number,
+                type: Type
+            });
+    
+            res.status(200).send(`Car added to user with id: ${User_id}`);
+        } else {
+            res.status(404).send(`User with id ${User_id} doesn't exists! Assign car to a valid user!`);
+        }
     } catch (err) {
         console.error(err);
         res.status(500).send("Internal Server Error!");

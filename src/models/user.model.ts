@@ -8,6 +8,7 @@ export class User extends Model {
 	public email!: string;
 	public password!: string;
 	public isAdmin!: boolean;
+	public ballance!: number;
 }
 
 User.init(
@@ -37,6 +38,11 @@ User.init(
 		isAdmin: {
 			type: DataTypes.BOOLEAN,
 			allowNull: false
+		},
+		ballance: {
+			type: DataTypes.INTEGER,
+			allowNull: false,
+			defaultValue: 100
 		}
 	},
 	{

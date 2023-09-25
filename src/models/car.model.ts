@@ -1,14 +1,14 @@
 import { Model, DataTypes } from 'sequelize';
 import { connection } from '../database';
 
-export class Cars extends Model {
+export class Car extends Model {
     public user_id!: number;
     public name!: string;
     public state_number!: string;
     public type!: string;
 }
 
-Cars.init(
+Car.init(
     {   
         id: {
 			type: DataTypes.INTEGER,
