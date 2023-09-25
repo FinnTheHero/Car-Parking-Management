@@ -297,8 +297,34 @@ app.put('/parking-zone/:id', async (req, res) => {
 	}
 });
 
-app.delete('/parking-zone/:id', (req, res) => {
+app.delete('/parking-zone/:id', async (req, res) => {
     // Implement parking zone deletion logic here
+	const { Email, Password } = req.body;
+	try {
+		// Find the user by email and password
+		const user = await User.findOne({ where: { email: `${Email}`, password: `${hash(Password)}` } });
+		if (!user) {
+			// User doesnt exist
+			return res.status(404).send(`User with mail ${Email} not found!`);
+		}
+
+		// Check if the user is admin
+		if (!user.isAdmin) {
+			// Not admin
+			return res.send("You dont have access to delete parking zones!");
+		}
+
+		// Check if zone exists
+		const parkingZone = await ParkingZone.findOne({ where: { id: req.params.id } });
+		if (!parkingZone) {
+			return res.status(404).send(`Parking zone with ID ${req.params.id} not found!`);
+		}
+
+		await parkingZone.destroy();
+		return res.status(200).send("Parking zone deleted successfully!");
+	} catch (err) {
+
+	}
 });
 
 // Parking reservation
