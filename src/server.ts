@@ -263,7 +263,19 @@ app.put('/parking-zone/:id', async (req, res) => {
 		}
 
 		// Check if user wants to set name and address same as other parking zone(not allowed)
-		const updatedParkingZone = await ParkingZone.findOne({ where: { name: `${Updated_name}`, address: `${parkingZone.address}` } });
+		let addr, n;
+		if (typeof Updated_address === 'undefined') {
+			addr = parkingZone.address;
+		} else {
+			addr = Updated_address;
+		}
+		if (typeof Updated_name === 'undefined') {
+			n = parkingZone.name;
+		} else {
+			n = Updated_name;
+		}
+
+		const updatedParkingZone = await ParkingZone.findOne({ where: { name: `${n}`, address: `${addr}` } });
 		if (!updatedParkingZone) {
 			// Modify parking zone
 			if (typeof Updated_name !== 'undefined') parkingZone.name = Updated_name;
@@ -276,7 +288,7 @@ app.put('/parking-zone/:id', async (req, res) => {
 			
 			return res.status(200).send("Parking zone updated successfully!");
 		} else {
-			return res.send(`Parking zone '${Updated_name}' on address '${parkingZone.address}' already exists!`);
+			return res.send(`Parking zone '${n}' on address '${addr}' already exists!`);
 		}
 
 	} catch (err) {
